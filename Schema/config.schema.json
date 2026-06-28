@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/pyshell-lab/config.schema.json",
+  "title": "PyShell-Lab Config",
+  "description": "Schema for basic PyShell-Lab configuration.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "defaultShell": {
+      "type": "string",
+      "default": "bash",
+      "description": "Default shell used to execute commands."
+    },
+    "defaultTimeoutSeconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 300,
+      "default": 30,
+      "description": "Default timeout for command execution."
+    },
+    "allowDangerousCommands": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether potentially destructive shell commands are allowed."
+    },
+    "logLevel": {
+      "type": "string",
+      "enum": ["debug", "info", "warning", "error"],
+      "default": "info",
+      "description": "Logging level for the application."
+    }
+  }
+}

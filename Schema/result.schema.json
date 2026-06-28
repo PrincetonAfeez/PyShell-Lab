@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/pyshell-lab/result.schema.json",
+  "title": "Command Result",
+  "description": "Schema for the result returned after running a command.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["command", "exitCode", "stdout", "stderr", "success"],
+  "properties": {
+    "command": {
+      "type": "string",
+      "description": "The command that was executed."
+    },
+    "exitCode": {
+      "type": "integer",
+      "description": "Process exit code."
+    },
+    "stdout": {
+      "type": "string",
+      "description": "Standard output from the command."
+    },
+    "stderr": {
+      "type": "string",
+      "description": "Standard error from the command."
+    },
+    "success": {
+      "type": "boolean",
+      "description": "Whether the command completed successfully."
+    },
+    "durationMs": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Execution duration in milliseconds."
+    }
+  }
+}

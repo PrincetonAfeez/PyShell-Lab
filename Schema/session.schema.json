@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/pyshell-lab/session.schema.json",
+  "title": "Lab Session",
+  "description": "Schema for a PyShell-Lab session.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sessionId", "createdAt", "commands"],
+  "properties": {
+    "sessionId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique identifier for the lab session."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the session was created."
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the session was last updated."
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "$ref": "./command.schema.json"
+      },
+      "description": "Commands associated with this session."
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "$ref": "./result.schema.json"
+      },
+      "description": "Execution results associated with this session."
+    }
+  }
+}
