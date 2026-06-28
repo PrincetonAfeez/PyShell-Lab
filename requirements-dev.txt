@@ -1,0 +1,24 @@
+# Locked development toolchain — exact pins for a reproducible dev/CI environment.
+# The runtime itself has NO third-party dependencies (standard library only);
+# everything here is tooling for tests, linting, and type-checking.
+#
+# Source: requirements-dev.in. To refresh against the current index, run:
+#   python -m piptools compile requirements-dev.in -o requirements-dev.txt --strip-extras
+#
+# Install:
+#   python -m pip install -e . -r requirements-dev.txt
+
+# Direct tools
+mypy==1.14.1
+pytest==8.3.4
+pytest-cov==6.0.0
+ruff==0.8.6
+
+# Transitive
+colorama==0.4.6 ; sys_platform == "win32"
+coverage==7.6.10
+iniconfig==2.0.0
+mypy-extensions==1.0.0
+packaging==24.2
+pluggy==1.5.0
+typing-extensions==4.12.2
