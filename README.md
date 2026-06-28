@@ -6,6 +6,8 @@
 
 PyShell Lab is an educational POSIX-style shell written in Python. It is a systems programming capstone, not a Bash clone. The project is deliberately CLI-only and focuses on the path from command text to real child processes.
 
+**Runtime:** Python 3.11+ standard library only — no third-party packages are required to run the shell. Development and CI use optional tools listed under [Developing](#developing).
+
 The shell demonstrates:
 
 - quote-aware lexing
@@ -26,7 +28,8 @@ PyShell Lab is structured as a teaching shell, not a compatibility layer:
 - **Real process control:** external commands via `fork` / `execvpe` / `waitpid`, not `subprocess.run` (ADR 0003)
 - **Stateful builtins in the parent:** `cd`, `export`, and friends mutate shell state where required (ADR 0005)
 - **Documented trade-offs:** foreground jobs stay in the shell process group for Ctrl-C (ADR 0008); full job control is deferred (ADR 0010)
-- **Tested core scope:** lexer through executor, POSIX-gated integration tests, CI coverage gate on Linux and macOS
+- **JSON Schema docs:** draft 2020-12 schemas for command AST interchange in [`Schema/`](Schema/README.md) (documentation only; the shell parses source text at runtime)
+- **Broad test coverage:** 230+ unit and integration tests; CI enforces ≥85% line coverage on Linux and macOS
 
 ## Platform
 
@@ -36,36 +39,67 @@ PyShell Lab targets POSIX platforms:
 - macOS
 - Windows through WSL
 
-Native Windows is not a full target because `os.fork`, POSIX process groups, and shell-style signal behavior are not available there. Lexer, parser, expansion, and most builtin tests still run on native Windows.
+Native Windows is not a full target because `os.fork`, POSIX process groups, and shell-style signal behavior are not available there. Lexer, parser, expansion, and most builtin tests still run on native Windows. Use **WSL**, Linux, or macOS for the full demo script, POSIX execution tests, and pipeline/background features.
 
-## Install And Run
+## Quick start
+
+From clone to verified build on **Linux, macOS, or WSL** (Python 3.11+):
 
 ```bash
+git clone https://github.com/PrincetonAfeez/pyshell-lab.git
+cd pyshell-lab
 python -m pip install -e ".[dev]"
-pyshell
 ```
 
-Run a script (loads `~/.pyshellrc` first, like interactive mode):
+**1. Run the shell demo** (no `~/.pyshellrc`; needs POSIX for pipelines and `&`):
 
 ```bash
-pyshell script.psh
 pyshell --no-rc examples/demo.psh
 ```
 
-Skip the optional startup file (interactive or script):
+Expected: lines such as `PyShell Lab demo`, `hello Ada`, `recovered`, and `done`; exit code `0`.
+
+**2. Run tests:**
 
 ```bash
-pyshell --no-rc
-pyshell --no-rc script.psh
+python -m pytest --cov=pyshell_lab
 ```
 
-Run tests:
+Expected: all tests pass. On Linux/macOS CI also enforces **≥85%** coverage on `pyshell_lab`. Native Windows skips POSIX `fork`/`exec` tests — use WSL for the full suite.
+
+**3. Validate sample command JSON** (optional; schemas are documentation-only):
 
 ```bash
-python -m pytest
+python -m pip install -r Schema/requirements-validation.txt
+python -m check_jsonschema --schemafile Schema/command.schema.json examples/command.example.json
 ```
 
-On native Windows, POSIX execution tests are skipped. Run the suite in WSL to exercise `fork`, `exec`, redirection, and pipelines. The CI matrix includes Windows for lexer/parser/builtin coverage; **Linux and macOS jobs validate the full POSIX execution path**.
+Expected: `ok -- validation done` (or exit code `0`). Details: [`Schema/README.md`](Schema/README.md).
+
+**4. Lint with pinned tooling** (optional; matches CI):
+
+```bash
+python -m pip install -e . -r requirements-dev.txt
+ruff check . && ruff format --check .
+mypy
+```
+
+Expected: all commands exit `0`. See [Developing](#developing) for day-to-day commands.
+
+Interactive shell: `pyshell` (loads `~/.pyshellrc` if present). Check version: `pyshell --version`.
+
+## Install And Run
+
+After [Quick start](#quick-start), everyday usage:
+
+```bash
+pyshell                              # interactive REPL
+pyshell --no-rc                      # skip ~/.pyshellrc
+pyshell script.psh                   # run a script (loads rc by default)
+pyshell --no-rc examples/demo.psh    # script without rc
+```
+
+The runtime uses the **Python standard library only** — no third-party packages required to run `pyshell`. Dev and validation tools are optional; see [Developing](#developing) and [`Schema/requirements-validation.txt`](Schema/requirements-validation.txt).
 
 ## Demo
 
@@ -112,32 +146,50 @@ ruff check . && ruff format --check .  # lint and format
 mypy                                   # type-check (POSIX target)
 ```
 
-The runtime has no third-party dependencies; `requirements-dev.txt` is a pinned
-lockfile of the tooling only (CI uses it for deterministic linting).
+The runtime has no third-party dependencies. [`requirements-dev.txt`](requirements-dev.txt) pins the lint/type-check toolchain; [`Schema/requirements-validation.txt`](Schema/requirements-validation.txt) pins optional JSON Schema validation only.
 
 ## Project Layout
 
 ```text
-examples/
-  demo.psh              runnable walkthrough of core features
-  command.example.json  sample AST JSON for schema validation
+.github/workflows/ci.yml   pytest matrix + ruff/mypy lint job
 Schema/
-  README.md             schema overview and validation quick start
-  command.schema.json   top-level command node schema
-  common.schema.json    shared word/redirection definitions
+  README.md                validation workflow, examples, license note
+  command.schema.json        command AST (JSON Schema draft 2020-12)
+  common.schema.json         shared schema fragments
+  requirements-validation.txt optional check-jsonschema pin
+docs/
+  SCOPE.md                   public capstone scope summary
+  adr/                       architecture decision records (0001–0013)
+examples/
+  demo.psh                   runnable walkthrough of core features
+  command.example.json       sample AST for schema validation
 src/pyshell_lab/
-  ast.py        structured command objects
-  lexer.py      words, quotes, escapes, and operators
-  parser.py     recursive-descent parser
-  expansion.py  variable and tilde expansion
-  executor.py   fork/exec/redirection/pipeline execution
-  builtins.py   cd, pwd, export, jobs, type, which, and friends
-  jobs.py       background job table and reaping
-  signals.py    Ctrl-C forwarding
-  history.py    in-memory and persisted history
-  repl.py       interactive and script loops
-  main.py       CLI entry point
+  ast.py                     structured command objects
+  lexer.py                   words, quotes, escapes, and operators
+  parser.py                  recursive-descent parser
+  expansion.py               variable and tilde expansion
+  executor.py                fork/exec/redirection/pipeline execution
+  builtins.py                cd, pwd, export, jobs, type, which, and friends
+  jobs.py                    background job table and reaping
+  signals.py                 Ctrl-C forwarding
+  history.py                 in-memory and persisted history
+  config.py                  ~/.pyshellrc loading
+  repl.py                    interactive and script loops
+  main.py                    CLI entry point
+tests/                       230+ pytest modules (POSIX-gated where needed)
+LICENSE                      MIT (Copyright Princeton Afeez)
 ```
+
+## JSON Schemas
+
+Parser AST shapes are documented as **JSON Schema draft 2020-12** files under [`Schema/`](Schema/README.md). They are for reviewers, tooling, and interchange — PyShell does **not** load command JSON at runtime (the lexer/parser build dataclasses from shell source).
+
+| Schema | Purpose |
+|--------|---------|
+| [`command.schema.json`](Schema/command.schema.json) | Top-level command node (`SimpleCommand`, `Pipeline`, `BackgroundCommand`, `CommandSequence`) |
+| [`common.schema.json`](Schema/common.schema.json) | Shared word/redirection definitions (fragments; validate with `command.schema.json`) |
+
+See [`Schema/README.md`](Schema/README.md) for the validation workflow, example JSON, and dependency notes. Result, session, and config JSON schemas are **not** defined in this repository.
 
 ## Command Flow
 
@@ -284,6 +336,7 @@ PyShell Lab intentionally does not implement:
 - here-docs
 - native Windows process control
 - full terminal foreground job control
+- JSON command input at runtime (schemas under `Schema/` document AST shapes for tooling only)
 - custom cryptography
 
 Comments are supported: a `#` that begins a word runs to end of line, so `echo hi # note` works while `echo a#b` keeps the `#` in the word.
@@ -312,8 +365,8 @@ Architecture decision records live in `docs/adr/`. A public scope summary is in 
 
 ## License
 
-This project is licensed under the MIT License. See [`LICENSE`](LICENSE) for details.
+This project is licensed under the MIT License. Copyright © 2026 Princeton Afeez. See [`LICENSE`](LICENSE) for details.
 
 ## Repository
 
-This project is intended to live in its own Git repository at [github.com/PrincetonAfeez/pyshell-lab](https://github.com/PrincetonAfeez/pyshell-lab) (update the README CI badge URL if you publish under a different name). If you keep it as a subdirectory of a larger monorepo, run CI and clone instructions from this `Shell/` directory so paths and badges stay correct.
+Source: [github.com/PrincetonAfeez/pyshell-lab](https://github.com/PrincetonAfeez/pyshell-lab). Clone this directory and run CI commands from the repository root (the badge above tracks the `main` branch workflow).
