@@ -1,0 +1,17 @@
+# PyShell Lab demo script (POSIX / WSL). Run with:
+#   pyshell --no-rc examples/demo.psh
+
+echo PyShell Lab demo
+NAME=Ada
+echo "hello $NAME"
+
+false && echo skipped || echo recovered
+
+# Pipeline and merged stderr
+ls /nope 2>&1 | wc -l
+
+# Background job (reaped before the script finishes)
+sleep 0.3 &
+sleep 0.5
+
+echo done
