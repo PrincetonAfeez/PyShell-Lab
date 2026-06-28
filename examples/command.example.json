@@ -1,0 +1,19 @@
+{
+  "kind": "simple",
+  "words": [
+    {
+      "parts": [
+        { "text": "echo", "quote": "none" },
+        { "text": "hello", "quote": "none" }
+      ]
+    }
+  ],
+  "redirections": [
+    {
+      "operator": ">",
+      "target": {
+        "parts": [{ "text": "out.txt", "quote": "none" }]
+      }
+    }
+  ]
+}

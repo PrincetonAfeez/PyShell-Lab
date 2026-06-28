@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "common.schema.json",
+  "title": "PyShell Lab shared AST fragments",
+  "description": "Reusable definitions for command words and redirections.",
+  "$defs": {
+    "quoteKind": {
+      "type": "string",
+      "enum": ["none", "single", "double"]
+    },
+    "wordPart": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "quote"],
+      "properties": {
+        "text": { "type": "string" },
+        "quote": { "$ref": "#/$defs/quoteKind" }
+      }
+    },
+    "commandWord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parts"],
+      "properties": {
+        "parts": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/wordPart" }
+        }
+      }
+    },
+    "redirectOp": {
+      "type": "string",
+      "enum": [">", ">>", "<", "2>", ">&", "2>&"]
+    },
+    "redirection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operator", "target"],
+      "properties": {
+        "operator": { "$ref": "#/$defs/redirectOp" },
+        "target": { "$ref": "#/$defs/commandWord" }
+      }
+    },
+    "simpleCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "words"],
+      "properties": {
+        "kind": { "const": "simple" },
+        "words": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/commandWord" }
+        },
+        "redirections": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/redirection" },
+          "default": []
+        }
+      }
+    },
+    "connector": {
+      "type": ["string", "null"],
+      "enum": [null, ";", "&&", "||"]
+    },
+    "commandNode": {
+      "oneOf": [
+        { "$ref": "#/$defs/simpleCommand" },
+        { "$ref": "#/$defs/pipeline" },
+        { "$ref": "#/$defs/backgroundCommand" },
+        { "$ref": "#/$defs/commandSequence" }
+      ]
+    },
+    "pipeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "commands"],
+      "properties": {
+        "kind": { "const": "pipeline" },
+        "commands": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/simpleCommand" }
+        }
+      }
+    },
+    "backgroundCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "command"],
+      "properties": {
+        "kind": { "const": "background" },
+        "command": {
+          "oneOf": [
+            { "$ref": "#/$defs/simpleCommand" },
+            { "$ref": "#/$defs/pipeline" }
+          ]
+        }
+      }
+    },
+    "sequenceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command"],
+      "properties": {
+        "connector": { "$ref": "#/$defs/connector" },
+        "command": { "$ref": "#/$defs/commandNode" }
+      }
+    },
+    "commandSequence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "items"],
+      "properties": {
+        "kind": { "const": "sequence" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/sequenceItem" }
+        }
+      }
+    }
+  }
+}

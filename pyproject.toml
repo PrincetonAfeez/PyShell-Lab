@@ -9,6 +9,7 @@ description = "Educational POSIX shell capstone built with Python fork/exec prim
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Princeton Afeez" }]
+license = { file = "LICENSE" }
 
 [project.urls]
 Homepage = "https://github.com/PrincetonAfeez/pyshell-lab"

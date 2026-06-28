@@ -119,7 +119,12 @@ lockfile of the tooling only (CI uses it for deterministic linting).
 
 ```text
 examples/
-  demo.psh      runnable walkthrough of core features
+  demo.psh              runnable walkthrough of core features
+  command.example.json  sample AST JSON for schema validation
+Schema/
+  README.md             schema overview and validation quick start
+  command.schema.json   top-level command node schema
+  common.schema.json    shared word/redirection definitions
 src/pyshell_lab/
   ast.py        structured command objects
   lexer.py      words, quotes, escapes, and operators
@@ -304,6 +309,10 @@ Architecture decision records live in `docs/adr/`. A public scope summary is in 
 | [0011](docs/adr/0011-execution-plan-deferred.md) | Deferred execution-plan debug |
 | [0012](docs/adr/0012-audit-log-deferred.md) | Deferred audit log |
 | [0013](docs/adr/0013-canonical-scope.md) | Canonical scope and `execvpe` |
+
+## License
+
+This project is licensed under the MIT License. See [`LICENSE`](LICENSE) for details.
 
 ## Repository
 
