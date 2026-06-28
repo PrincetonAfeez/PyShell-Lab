@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyshell-lab"
+version = "0.1.0"
+description = "Educational POSIX shell capstone built with Python fork/exec primitives."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Princeton Afeez" }]
+
+[project.urls]
+Homepage = "https://github.com/PrincetonAfeez/pyshell-lab"
+Repository = "https://github.com/PrincetonAfeez/pyshell-lab"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11"]
+
+[project.scripts]
+pyshell = "pyshell_lab.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.11"
+# The project targets POSIX, so type-check against POSIX os/signal APIs
+# (os.fork, os.setpgid, os.WNOHANG, readline, ...) regardless of the host OS.
+platform = "linux"
+mypy_path = "src"
+packages = ["pyshell_lab"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+
+[tool.coverage.run]
+branch = true
+source = ["pyshell_lab"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = ["pragma: no cover", "if __name__ == .__main__.:"]
